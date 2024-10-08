@@ -1,13 +1,17 @@
-## Good Zulu
+## Please be sure to run in your terminal: 'python -m spacy download en_core_web_sm' before running this program
 
 # Library and APIs and stuff
 import speech_recognition as sr
 import pyttsx3
 import webbrowser
 import datetime
+import spacy
 
 # Speech Recognition Object
 recognizer = sr.Recognizer()
+
+# Load spacy model
+nlp = spacy.load('en_core_web_sm')
 
 # Wakeword Class and Object
 class WakeClass:
@@ -53,15 +57,37 @@ def current_date():
 
 # Opens Websites
 def open_browser(text):
-    if ".com" in text:
-        webbrowser.open("www." + text)
-        talk("Opening: " + text)
-    else:
-        webbrowser.open("www." + text + ".com")
-        talk("Opening: " + text + ".com")
+    # Find the position of the word "open"
+    open_position = text.find('open')
+    if open_position != -1:
+        # Extract the part of the text after "open"
+        website_part = text[open_position + len('open'):].strip()
+        
+        # Check for domain extensions
+        domain_extensions = [".com", ".net", ".org", ".gov", ".edu"]
+        extension_found = False
 
-# Searches Google For
+        for ext in domain_extensions:
+            if ext in website_part:
+                # Slice the website part to remove anything after the extension
+                website_part = website_part.split(ext)[0] + ext
+                extension_found = True
+                break  # Exit once we find the first valid extension
+
+        # If no extension was found, default to .com
+        if not extension_found:
+            website_part += ".com"
+
+        # Open the website
+        webbrowser.open("http://www." + website_part)
+        talk("Opening: " + website_part)
+    
+# Searches Google
 def search_google(text):
+    for_position = text.find('for')
+    if for_position != -1:
+        # Extract the part of the text after "for" like web search does "open"
+        text = text[for_position + len('for'):].strip()
     webbrowser.open("https://www.google.com/search?q=" + text)
     talk("Searching for" + text)
 
@@ -74,23 +100,30 @@ def stop():
 def halt():
     talk("Bye")
     exit()
-
+    
+    
+valid_commands = ["current time", "today's date", "open", "search for", "quit", "halt"]
 # AI
 def task(text):
-    if 'current time' in text:
+    doc = nlp(text)
+    for token in doc:
+        print(token.text, token.pos_, token.dep_)
+
+    # Extract intents from the parsed text
+    if any([token.lemma_ == "time" for token in doc]):
         current_time()
-    elif "today's date" in text:
+    elif any([token.lemma_ == "date" for token in doc]):
         current_date()
-    elif 'open' in text:
-        open_browser(text[5:])
-    elif 'search for' in text:
-        search_google(text[10:])
-    elif 'quit' in text:
+    elif any([token.lemma_ == "open" for token in doc]):
+        open_browser(text)
+    elif any([token.lemma_ == "search" for token in doc]):
+        search_google(text)
+    elif "quit" in text or "exit" in text:
         stop()
-    elif text == "halt":
+    elif "halt" in text or "stop" in text:
         halt()
     else:
-        talk("Unknown Command.") # maybe add list of commands??
+        talk("Unknown command. Please try again.")
 
 # AI Loop
 while True:

@@ -1,0 +1,4 @@
+SpeechRecognition
+pyttsx3
+spacy
+## Please be sure to run in your terminal: 'python -m spacy download en_core_web_sm' before running Zulu
