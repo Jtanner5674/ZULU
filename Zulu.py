@@ -112,16 +112,16 @@ def search_google(text):
     talk("Searching for" + text)
 
 # Stop Function
-def stop():
+def exit_program():
     talk("Thank you for using Zulu! See you next time!")
-    conn.close()
-    exit()
-
-# Halt Function
-def halt():
-    talk("Bye")
-    conn.close()
-    exit()
+    try:
+        cursor.execute('''
+            DELETE FROM commands        
+        ''')
+        conn.commit() 
+    finally:
+        conn.close() 
+    exit() 
     
 # Repeat?
 def repeat():
@@ -133,7 +133,7 @@ def repeat():
     last_command = cursor.fetchone()
     talk(f"Sure I said, {last_command[2]}")
     
-valid_commands = ["current time", "today's date", "open", "search for","repeat", "quit", "halt"]
+valid_commands = ["current time", "today's date", "open", "search for","repeat", "quit"]
 # AI
 def task(text):
     doc = nlp(text)
@@ -151,10 +151,8 @@ def task(text):
         search_google(text)
     elif any([token.lemma_ == "repeat" for token in doc]):
         repeat()
-    elif "quit" in text or "exit" in text:
-        stop()
-    elif "halt" in text or "stop" in text:
-        halt()
+    elif "quit" in text or "exit" in text or "halt" in text or "stop" in text or "close" in text:
+        exit_program()
     else:
         talk("Unknown command. Please try again.")
 
