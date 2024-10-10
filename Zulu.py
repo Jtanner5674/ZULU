@@ -6,12 +6,26 @@ import pyttsx3
 import webbrowser
 import datetime
 import spacy
+import sqlite3
+
 
 # Speech Recognition Object
 recognizer = sr.Recognizer()
 
 # Load spacy model
 nlp = spacy.load('en_core_web_sm')
+
+# Connect to history(Creates if doesnt exist)
+conn = sqlite3.connect('history.db')
+cursor = conn.cursor()
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS commands (
+        id INTEGER PRIMARY KEY,
+        time DATETIME,
+        command TEXT
+    )
+''')
 
 # Wakeword Class and Object
 class WakeClass:
@@ -32,9 +46,15 @@ speechEngine = pyttsx3.init()
 speechEngine.setProperty('volume', 1)
 speechEngine.setProperty('rate', 150)
 def talk(string):
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(string)
+    cursor.execute('''
+    INSERT INTO commands (time, command) VALUES (?, ?)
+''', (current_time, string))
+    conn.commit()
     speechEngine.say(string)
     speechEngine.runAndWait()
+
 
 # Listen for Speech
 def audio_input():
@@ -94,15 +114,26 @@ def search_google(text):
 # Stop Function
 def stop():
     talk("Thank you for using Zulu! See you next time!")
+    conn.close()
     exit()
 
 # Halt Function
 def halt():
     talk("Bye")
+    conn.close()
     exit()
     
+# Repeat?
+def repeat():
+    cursor.execute('''
+        SELECT * FROM commands                   
+        ORDER BY time DESC           
+        LIMIT 1           
+    ''')
+    last_command = cursor.fetchone()
+    talk(f"Sure I said, {last_command[2]}")
     
-valid_commands = ["current time", "today's date", "open", "search for", "quit", "halt"]
+valid_commands = ["current time", "today's date", "open", "search for","repeat", "quit", "halt"]
 # AI
 def task(text):
     doc = nlp(text)
@@ -118,6 +149,8 @@ def task(text):
         open_browser(text)
     elif any([token.lemma_ == "search" for token in doc]):
         search_google(text)
+    elif any([token.lemma_ == "repeat" for token in doc]):
+        repeat()
     elif "quit" in text or "exit" in text:
         stop()
     elif "halt" in text or "stop" in text:
