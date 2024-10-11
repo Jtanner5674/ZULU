@@ -1,7 +1,7 @@
 # ZULU
 
 ### Description
-Zulu is an **open-source**, **private** alternative to popular voice assistants like Alexa. However, Zulu is not a "smart assistant." Unlike other assistants that record and store your voice data to sell to advertisers, Zulu prioritizes your privacy. It doesn't store your conversations, ensuring a safer and more private experience.
+Zulu is an **open-source**, **private** alternative to popular voice assistants like Cortana. However, Zulu is not a "smart assistant." Unlike other assistants that record and store your voice data to sell to advertisers, Zulu prioritizes your privacy. It doesn't store your conversations, ensuring a safer and more private experience.
 
 ### Features:
 - Listens for a user-defined wake word (set in `wakeword.txt`).
