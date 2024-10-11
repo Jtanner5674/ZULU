@@ -37,7 +37,7 @@ Zulu is an **open-source**, **private** alternative to popular voice assistants 
 
 2. Run the main script:
    ```bash
-   python Zulu.py
+   python main.py
    ```
 
 3. Zulu will now listen for your wake word and execute commands accordingly.
